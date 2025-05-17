@@ -1,7 +1,9 @@
 from unittest import TestCase, mock
+
 from src.set_cover import validate_file_exists
 
 TEST_FILE_NAME = "test-file.txt"
+
 
 class TestSetCover(TestCase):
     @mock.patch('src.set_cover.Path.exists')

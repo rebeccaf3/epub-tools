@@ -6,7 +6,10 @@ EPUB is an e-book file format that uses the ".epub" file extension.
 <summary>Glossary</summary>
 <b>EPUB:</b> Electronic Publication<br>
 <b>NCX:</b> Navigation Control file for XML<br>
+<b>OEB:</b> Open eBook<br>
+<b>OEBPS:</b> Open eBook Publication Structure <br>
 <b>OPF:</b> Open Package Format<br>
+<b>OPS:</b> Open Publication Structure<br>
 <b>XHTML:</b> Extensible HyperText Markup Language
 </details>
 <br>
