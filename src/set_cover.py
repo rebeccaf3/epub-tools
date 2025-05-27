@@ -1,5 +1,6 @@
+from argparse import ArgumentParser
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
 
 from lxml import etree
 
@@ -75,7 +76,7 @@ def get_location_of_content_opf_file(zip_file):
     return rootfile.get("full-path")
 
 
-def validate_file_exists(file_path: str):
+def validate_file_is_regular(file_path: str):
     """Validate the file `file_path` exists. Raise an error otherwise.
 
     Args:
@@ -84,8 +85,8 @@ def validate_file_exists(file_path: str):
     Raises:
         Exception: Exception is the file does not exist.
     """
-    if not Path(file_path).exists():
-        raise RuntimeError(f"No such file {file_path}")
+    if not Path(file_path).is_file():
+        raise RuntimeError(f"{file_path} not found or not a regular file.")
 
 
 def copy_zip_with_replacements(
@@ -166,7 +167,7 @@ def _check_item_tag_present_in_manifest(manifest) -> bool:
 
 
 def _check_meta_tag_present_in_metadata(metadata) -> bool:
-    """Determine if the expected meta tag is present in the metadara Element.
+    """Determine if the expected meta tag is present in the metadata Element.
     <meta name="cover" content="cover"/>
 
     Args:
@@ -198,8 +199,9 @@ def set_cover(src_file: str, dst_file: str, img_to_add) -> bool:
         bool: Return True if the EPUB output was created successfully
             and False otherwise.
     """
-    validate_file_exists(src_file)
-    validate_file_exists(img_to_add)
+    if not is_zipfile(src_file):
+        raise RuntimeError(f"{src_file} is not an epub archive.")
+    validate_file_is_regular(img_to_add)
 
     if Path(dst_file).exists():
         continue_str = input(
@@ -276,11 +278,25 @@ def set_cover(src_file: str, dst_file: str, img_to_add) -> bool:
 
 
 def main():
-    src_file = "test_epubs/input.epub"
-    dst_file = "test_epubs/output.epub"
-    cover_image = "test_epubs/cover.jpg"
-    if set_cover(src_file, dst_file, cover_image):
-        print(f"Written output to {dst_file}")
+    parser = ArgumentParser()
+    parser.add_argument(
+        "src_file", help="The path to the source EPUB file", type=str
+    )
+    parser.add_argument(
+        "dst_file",
+        help="The destination to save the EPUB file with the cover to",
+        type=str
+    )
+    parser.add_argument(
+        "cover_image",
+        help="The path to cover image to set on the EPUB file",
+        type=str
+    )
+
+    args = parser.parse_args()
+
+    if set_cover(args.src_file, args.dst_file, args.cover_image):
+        print(f"Written output to {args.dst_file}")
     else:
         print("Aborted")
 
