@@ -1,4 +1,4 @@
-Used Calibre to take an EPUB with no cover and add one
+Used Calibre to take an EPUB with no cover and add one and compared the input/output files.
 
-- Add <meta name="cover" content="cover"/> to metadata tags
-- Add <item href="cover.jpg" id="cover" media-type="image/jpeg"/> to manifest tags
+- Adds `<meta name="cover" content="cover"/>` to metadata tags
+- Adds `<item href="cover.jpg" id="cover" media-type="image/jpeg"/>` to manifest tags
