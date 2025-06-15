@@ -4,76 +4,18 @@ from zipfile import ZipFile, is_zipfile
 
 from lxml import etree
 
+from utils.epub_utils import (get_content_opf_xml_root,
+                              get_location_of_content_opf_file,
+                              validate_mimetype)
+
 # The path where the `mimetype` file should be stored.
 MIMETYPE_PATH = "mimetype"
 
 # The data that the file `mimetype` should contain.
 MIMETYPE_DATA = b"application/epub+zip"
 
-# The expected path to the container.xml file
-CONTAINER_XML_PATH = "META-INF/container.xml"
-
 # The default file name to write the the cover image to.
 COVER_NAME = "cover.jpg"
-
-
-def validate_mimetype(zip_file):
-    """Validate that an opened ZIP archive contains the expected mimetype file.
-    Raise an exception if this is not the case.
-
-    Args:
-        zip_file zipfile.ZipFile: File handle to open EPUB file to test it
-        contains the expected mimetype file.
-
-    Raises:
-        Exception: mimetype file is not found.
-        Exception: mimetype file is found
-            but it does not contain the expected contents.
-    """
-    try:
-        mimetype = zip_file.read(MIMETYPE_PATH)
-    except KeyError as e:
-        raise KeyError(
-            f"{MIMETYPE_PATH} file not found. Is this definitely an EPUB file?"
-        ) from e
-
-    if MIMETYPE_DATA != mimetype:
-        raise RuntimeError(
-            f"Found {MIMETYPE_PATH} file but it contains {mimetype}. "
-            f"Expected: {MIMETYPE_DATA!r}"
-        )
-
-
-def get_location_of_content_opf_file(zip_file):
-    """Get the location of the content.opf from the container.xml file.
-
-    Args:
-        zip_file (zipfile.ZipFile): File handle to open EPUB file.
-
-    Raises:
-        Exception: Cannot find container.xml file.
-        Exception: container.xml is not in the expected format.
-
-    Returns:
-        str: Returns the path to the content.opf file
-            obtained from the container.xml file.
-    """
-    try:
-        container_xml = zip_file.read(CONTAINER_XML_PATH)
-    except KeyError as exception:
-        raise KeyError("Cannot find {CONTAINER_XML_PATH}") from exception
-
-    container_root = etree.fromstring(container_xml)
-
-    namespace = {"ns": "urn:oasis:names:tc:opendocument:xmlns:container"}
-    rootfile = container_root.find("ns:rootfiles/ns:rootfile", namespace)
-
-    if rootfile is None:
-        raise RuntimeError(
-            "Unable to find <rootfiles> <rootfile> in {CONTAINER_XML_PATH}"
-        )
-
-    return rootfile.get("full-path")
 
 
 def validate_file_is_regular(file_path: str):
@@ -216,15 +158,9 @@ def set_cover(src_file: str, dst_file: str, img_to_add) -> bool:
         validate_mimetype(zip_file)
         content_opf_path = get_location_of_content_opf_file(zip_file)
 
-        try:
-            content_opf_xml = zip_file.read(content_opf_path)
-        except KeyError as exception:
-            raise KeyError("Cannot find {content_opf_path}") from exception
-
-        parser_remove_blank_text = etree.XMLParser(remove_blank_text=True)
-        content_opf_xml_root = etree.fromstring(
-            content_opf_xml,
-            parser_remove_blank_text
+        content_opf_xml_root = get_content_opf_xml_root(
+            zip_file,
+            content_opf_path
         )
 
         path_to_cover_in_zipfile = str(
