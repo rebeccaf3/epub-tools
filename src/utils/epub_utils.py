@@ -74,6 +74,16 @@ def get_location_of_content_opf_file(zip_file):
     return rootfile.get("full-path")
 
 
+def get_toc_ncx(zip_file, toc_ncx_path):
+    try:
+        toc_ncx_xml = zip_file.read(toc_ncx_path)
+    except KeyError as exception:
+        raise KeyError("Cannot find {toc_ncx_path}") from exception
+
+    parser_remove_blank_text = etree.XMLParser(remove_blank_text=True)
+    return etree.fromstring(toc_ncx_xml, parser_remove_blank_text)
+
+
 def get_content_opf_xml_root(zip_file, content_opf_path): 
     try:
         content_opf_xml = zip_file.read(content_opf_path)

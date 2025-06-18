@@ -8,12 +8,6 @@ from utils.epub_utils import (get_content_opf_xml_root,
                               get_location_of_content_opf_file,
                               validate_mimetype)
 
-# The path where the `mimetype` file should be stored.
-MIMETYPE_PATH = "mimetype"
-
-# The data that the file `mimetype` should contain.
-MIMETYPE_DATA = b"application/epub+zip"
-
 # The default file name to write the the cover image to.
 COVER_NAME = "cover.jpg"
 
