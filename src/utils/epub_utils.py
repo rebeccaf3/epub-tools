@@ -2,6 +2,8 @@ from pathlib import Path
 
 from lxml import etree
 
+CONTAINER_XML_PARENT = "META-INF/"
+
 # The expected path to the container.xml file
 CONTAINER_XML_PATH = "META-INF/container.xml"
 
@@ -92,6 +94,32 @@ def get_content_opf_xml_root(zip_file, content_opf_path):
 
     parser_remove_blank_text = etree.XMLParser(remove_blank_text=True)
     return etree.fromstring(content_opf_xml, parser_remove_blank_text)
+
+
+def replace_all_hrefs(file_contents, updated_hrefs) -> str:
+    root = etree.fromstring(file_contents)
+    elements_with_href = [root] if "href" in root.attrib else []
+    elements_with_href.extend(root.findall('.//*[@href]'))
+    for e in elements_with_href:
+        current_href_value = e.attrib["href"]
+        if current_href_value in updated_hrefs:
+            e.set("href", updated_hrefs[current_href_value])
+    return etree.tostring(root, pretty_print=True)
+
+
+def replace_all_src_element(root, updated_src):
+    elements_with_src = [root] if "src" in root.attrib else []
+    elements_with_src.extend(root.findall('.//*[@src]'))
+    for e in elements_with_src:
+        current_src_value = e.attrib["src"]
+        if current_src_value in updated_src:
+            e.set("src", updated_src[current_src_value])
+    return root
+
+
+def replace_all_src(file_contents, updated_src) -> str:
+    root = replace_all_src_element(etree.fromstring(file_contents), updated_src)
+    return etree.tostring(root, pretty_print=True)
 
 
 def add_prefix_to_file_path(prefix: str, file_path: str) -> str:
