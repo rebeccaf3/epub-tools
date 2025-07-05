@@ -9,8 +9,8 @@ from utils.epub_utils import (CONTAINER_XML_PARENT, CONTAINER_XML_PATH,
                               add_prefix_to_file_path,
                               get_content_opf_xml_root,
                               get_location_of_content_opf_file, get_toc_ncx,
-                              replace_all_hrefs, replace_all_src,
-                              replace_all_src_element)
+                              merge_metadata, replace_all_hrefs,
+                              replace_all_src, replace_all_src_element)
 
 
 def epub_merge(files_to_merge: list[str], dst_file: str) -> bool:
@@ -28,6 +28,7 @@ def epub_merge(files_to_merge: list[str], dst_file: str) -> bool:
         # This will be equivalent to the first content.opf location we
         # encounter in the list of files to merge.
         output_content_opf_location = None
+        
         # The output content.opf etree
         output_content_opf_tree = None
 
@@ -51,12 +52,10 @@ def epub_merge(files_to_merge: list[str], dst_file: str) -> bool:
                 content_opf_xml_root = get_content_opf_xml_root(
                     zip_file, content_opf_path
                 )
-                output_opf_xml_root = get_content_opf_xml_root(
-                    zip_file, content_opf_path
-                )
+
                 if output_content_opf_tree is None:
-                    output_content_opf_tree = etree.ElementTree(
-                        output_opf_xml_root
+                    output_content_opf_tree = get_content_opf_xml_root(
+                        zip_file, content_opf_path
                     )
                     output_manifest = output_content_opf_tree.find("ns:manifest", namespace)
                     if output_manifest is None:
@@ -70,6 +69,9 @@ def epub_merge(files_to_merge: list[str], dst_file: str) -> bool:
                         return False
                     else:
                         output_spine.clear()
+
+                else:
+                    merge_metadata(output_content_opf_tree, content_opf_xml_root)
 
                 # {original file path: file contents}
                 path_and_contents_dict = {}

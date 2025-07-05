@@ -42,6 +42,38 @@ def validate_mimetype(zip_file):
             f"Found {MIMETYPE_PATH} file but it contains {mimetype}. "
             f"Expected: {MIMETYPE_DATA!r}"
         )
+    
+
+def merge_metadata(output_opf_root, current_opf_root):
+    """
+    Merge metadata from current_opf_root to the metadata in output_opf_root.
+    This will add all unique subject tags and combine the titles.
+
+    Args:
+        output_opf_root: The output content.opf xml root to be written to.
+        current_opf_root: The content.opf xml root to merge into output.
+    """
+    if output_opf_root is None:
+        return current_opf_root
+
+    namespace = {"ns": "*"}
+
+    output_metadata = output_opf_root.find("ns:metadata", namespace)
+    metadata = current_opf_root.find("ns:metadata", namespace)
+
+    # Add all unique subject tags
+    subject_tags = metadata.findall("ns:subject", namespace)
+    for i in subject_tags:
+        if i.text not in [j.text for j in output_metadata.findall("ns:subject", namespace)]:
+            output_metadata.append(i)
+
+    # The string to delimit the title with
+    title_delimiter = " & "
+
+    # Update title tag to include both titles
+    output_title = output_metadata.find("ns:title", namespace)
+    metadata_title_text = metadata.find("ns:title", namespace).text
+    output_title.text = output_title.text + title_delimiter + metadata_title_text
 
 
 def get_location_of_content_opf_file(zip_file):
